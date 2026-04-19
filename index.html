@@ -6,50 +6,62 @@
 <title>关系潜意识测试</title>
 
 <style>
-:root {
-    --bg:#0b0b0f;
-    --card:#15151c;
-    --text:#e6e6eb;
-    --sub:#8a8a95;
-    --accent:#7c5cff;
+:root{
+--bg:#0b0b0f;
+--card:#15151c;
+--text:#e6e6eb;
+--sub:#8a8a95;
+--accent:#7c5cff;
 }
 
 body{
-    margin:0;
-    font-family:-apple-system,BlinkMacSystemFont;
-    background:var(--bg);
-    color:var(--text);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    min-height:100vh;
+margin:0;
+font-family:-apple-system,BlinkMacSystemFont;
+background:var(--bg);
+color:var(--text);
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
 }
 
 #app{
-    width:90%;
-    max-width:600px;
-    background:var(--card);
-    padding:30px;
-    border-radius:10px;
+width:90%;
+max-width:600px;
+background:var(--card);
+padding:30px;
+border-radius:10px;
 }
 
-h1{color:var(--accent)}
+h1,h2{color:var(--accent)}
 
 .option{
-    display:block;
-    width:100%;
-    margin:10px 0;
-    padding:14px;
-    background:#1f1f28;
-    border:none;
-    color:white;
-    cursor:pointer;
-    border-radius:6px;
+display:block;
+width:100%;
+margin:10px 0;
+padding:14px;
+background:#1f1f28;
+border:none;
+color:white;
+cursor:pointer;
+border-radius:6px;
 }
 .option:hover{background:#2b2b38}
 
 .hidden{display:none}
 .progress{color:var(--sub);margin-bottom:15px}
+
+.bar{
+height:8px;
+background:#222;
+border-radius:4px;
+margin:6px 0 12px;
+overflow:hidden;
+}
+.fill{
+height:100%;
+background:var(--accent);
+}
 </style>
 </head>
 
@@ -60,10 +72,10 @@ h1{color:var(--accent)}
 <div id="intro">
 <h1>关系潜意识测试</h1>
 <p style="color:var(--sub)">
-不是测性癖，是测你在关系里的“底层驱动”。<br>
-你会控制、依附、挑衅，还是旁观？
+测的不是表面性格，是你在关系里的底层驱动。<br>
+你会控制、依附、越界，还是旁观？
 </p>
-<button onclick="start()">开始</button>
+<button onclick="startTest()">开始</button>
 </div>
 
 <div id="quiz" class="hidden">
@@ -75,203 +87,71 @@ h1{color:var(--accent)}
 <div id="result" class="hidden">
 <h2 id="title"></h2>
 <p id="desc"></p>
+
+<div id="bars"></div>
+
+<p id="shadow" style="margin-top:20px;color:#bbb"></p>
 </div>
 
 </div>
 
 <script>
 
-// 四维
-let scores = { D:0, S:0, C:0, V:0 };
-let intensity = 0; // 强度
+// 分数
+let scores={D:0,S:0,C:0,V:0};
+let intensity=0;
+let current=0;
 
-const questions = [
+// 题库（20题）
+const questions=[
+["你掌握别人秘密时？",[["留着","V",1],["施压","D",2],["暗示","C",2],["降低距离","S",1]]],
+["对方失控时？",[["接管","D",2],["观察","V",1],["推动","C",2],["靠近","S",1]]],
+["被影响时？",[["反控","D",2],["分析","V",1],["半顺","C",1],["接受","S",1]]],
+["关系稳定后？",[["再掌控","D",2],["抽离","V",1],["打破","C",2],["依赖","S",1]]],
+["被忽视？",[["改变局面","D",2],["观察","V",1],["升级冲突","C",2],["内耗","S",1]]],
+["看到强者脆弱？",[["掌控感","D",2],["记录","V",1],["试探","C",2],["依附","S",1]]],
+["边界被碰？",[["压回去","D",2],["观察","V",1],["推远","C",2],["退让","S",1]]],
+["被依赖？",[["扩大控制","D",2],["保持距离","V",1],["抽离","C",1],["享受","S",1]]],
+["被误解？",[["重构叙事","D",2],["看发展","V",1],["加深","C",2],["内耗","S",1]]],
+["你最在意？",[["控制","D",2],["信息","V",1],["边界","C",2],["关系","S",1]]],
 
-{ text:"1. 你知道一件能让别人失去体面的事。", options:[
-["留着，不急","V",1],
-["让他知道你知道","D",2],
-["偶尔点一下","C",2],
-["觉得他没那么高了","S",1]
-]},
-
-{ text:"2. 对方在你面前失控。", options:[
-["接管局面","D",2],
-["观察细节","V",1],
-["再推一点看看","C",2],
-["开始在意他","S",1]
-]},
-
-{ text:"3. 有人想影响你。", options:[
-["反过来影响他","D",2],
-["先看清再说","V",1],
-["顺着但不完全","C",1],
-["配合比较轻松","S",1]
-]},
-
-{ text:"4. 关系稳定后你通常会：", options:[
-["重新分配主导权","D",2],
-["抽离一点","V",1],
-["制造波动","C",2],
-["更依赖","S",1]
-]},
-
-{ text:"5. 被忽视时：", options:[
-["改变局面","D",2],
-["分析原因","V",1],
-["让局面更极端","C",2],
-["怀疑自己","S",1]
-]},
-
-{ text:"6. 看到强者脆弱：", options:[
-["掌控感上来","D",2],
-["记录下来","V",1],
-["想继续试探","C",2],
-["更想靠近","S",1]
-]},
-
-{ text:"7. 有人踩边界：", options:[
-["直接压回去","D",2],
-["观察动机","V",1],
-["往更远推","C",2],
-["退一步","S",1]
-]},
-
-{ text:"8. 对方依赖你：", options:[
-["扩大控制","D",2],
-["保持理性","V",1],
-["偶尔抽离","C",1],
-["享受被需要","S",1]
-]},
-
-{ text:"9. 被误解：", options:[
-["改写叙事","D",2],
-["看他发展","V",1],
-["加深误解","C",2],
-["内耗","S",1]
-]},
-
-{ text:"10. 你更在意：", options:[
-["掌控","D",2],
-["信息","V",1],
-["边界","C",2],
-["关系","S",1]
-]},
-
-// 新增10题（更“阴”一点）
-
-{ text:"11. 你更容易记住别人哪一面？", options:[
-["弱点","D",2],
-["细节","V",1],
-["失控瞬间","C",2],
-["对你的态度","S",1]
-]},
-
-{ text:"12. 对方情绪稳定时你会：", options:[
-["维持优势","D",1],
-["观察变化","V",1],
-["想打破平衡","C",2],
-["安心","S",1]
-]},
-
-{ text:"13. 你会不会“测试人”？", options:[
-["会，而且明显","D",2],
-["会，但很隐蔽","V",1],
-["会，甚至推到极限","C",2],
-["很少","S",0]
-]},
-
-{ text:"14. 当你占上风时：", options:[
-["继续扩大","D",2],
-["保持冷静","V",1],
-["推向极端","C",2],
-["会收一点","S",1]
-]},
-
-{ text:"15. 你更怕哪种失控？", options:[
-["局面失控","D",2],
-["信息不完整","V",1],
-["关系变平淡","C",2],
-["被抛下","S",1]
-]},
-
-{ text:"16. 有人依赖你但你不需要他：", options:[
-["利用","D",2],
-["观察","V",1],
-["反复拉扯","C",2],
-["慢慢疏远","S",1]
-]},
-
-{ text:"17. 你对“边界”的看法：", options:[
-["是用来控制的","D",2],
-["是用来理解的","V",1],
-["是用来突破的","C",2],
-["是用来依靠的","S",1]
-]},
-
-{ text:"18. 对方越界后你：", options:[
-["压回去","D",2],
-["记录","V",1],
-["加码","C",2],
-["退让","S",1]
-]},
-
-{ text:"19. 关系失衡时你更可能：", options:[
-["重建结构","D",2],
-["分析问题","V",1],
-["让它崩掉","C",2],
-["维持连接","S",1]
-]},
-
-{ text:"20. 如果没人限制你：", options:[
-["你会控制更多","D",2],
-["你会观察更多","V",1],
-["你会越界更多","C",2],
-["你会依赖更多","S",1]
-]}
-
+["记住别人哪面？",[["弱点","D",2],["细节","V",1],["失控","C",2],["态度","S",1]]],
+["稳定状态？",[["维持优势","D",1],["观察","V",1],["想打破","C",2],["安心","S",1]]],
+["会测试人吗？",[["明显","D",2],["隐性","V",1],["极端","C",2],["很少","S",0]]],
+["占上风？",[["扩大","D",2],["克制","V",1],["极端","C",2],["收一点","S",1]]],
+["最怕？",[["失控","D",2],["未知","V",1],["无聊","C",2],["被抛","S",1]]],
+["对方依赖你但你不需要？",[["利用","D",2],["观察","V",1],["拉扯","C",2],["疏远","S",1]]],
+["边界本质？",[["控制工具","D",2],["理解结构","V",1],["用来突破","C",2],["依靠","S",1]]],
+["被越界？",[["压回","D",2],["记录","V",1],["加码","C",2],["退让","S",1]]],
+["关系失衡？",[["重建","D",2],["分析","V",1],["摧毁","C",2],["维持","S",1]]],
+["无限制时？",[["控制更多","D",2],["观察更多","V",1],["越界更多","C",2],["依赖更多","S",1]]]
 ];
 
-const results = {
-
-"D":{
-title:"【控制倾向主导】",
-desc:"你对关系的第一反应不是情绪，而是结构。\n你习惯在无形中占据更高的位置。\n\n你不一定表现得强势，但你很少真正失去主导。\n\n⚠ 风险：当不受限制时，你会逐渐把关系变成单向结构。"
-},
-
-"S":{
-title:"【依附倾向主导】",
-desc:"你对关系的核心需求是连接。\n你可以退让，也可以适应，只要关系还在。\n\n你不弱，但你更愿意留在关系里。\n\n⚠ 风险：你会在不知不觉中让出太多空间。"
-},
-
-"C":{
-title:"【越界驱动】",
-desc:"你对稳定有本能的不信任。\n当一切顺利时，你反而开始想改变它。\n\n你不是破坏，而是需要“波动”来确认真实。\n\n⚠ 风险：你会把可控关系推向不可控。"
-},
-
-"V":{
-title:"【观察者】",
-desc:"你习惯站在一步之外。\n你理解局面，但不急于参与。\n\n你很少失控，但也很少完全投入。\n\n⚠ 风险：你可能一直在场，却从未真正进入。"
-}
-
+// 结果库
+const descMap={
+D:"你习惯接管结构。\n你不一定强势，但你很少真正让出主导。",
+S:"你需要连接。\n你可以退让，只要关系还在。",
+C:"你对稳定不信任。\n你需要波动来确认真实。",
+V:"你更像观察者。\n你理解一切，但不急于进入。"
 };
 
-let current = 0;
-
+// 开始
 function startTest(){
-document.getElementById('screen-intro').classList.add('hidden');
-document.getElementById('screen-quiz').classList.remove('hidden');
+document.getElementById("intro").classList.add("hidden");
+document.getElementById("quiz").classList.remove("hidden");
 render();
 }
 
+// 渲染
 function render(){
-let q = questions[current];
-document.getElementById('progress-text').innerText = (current+1)+"/20";
-document.getElementById('question-text').innerText = q.text;
+let q=questions[current];
+document.getElementById("progress").innerText=(current+1)+"/20";
+document.getElementById("q").innerText=q[0];
 
-let box = document.getElementById('options-container');
-box.innerHTML = "";
+let box=document.getElementById("opts");
+box.innerHTML="";
 
-q.options.forEach(o=>{
+q[1].forEach(o=>{
 let btn=document.createElement("button");
 btn.className="option";
 btn.innerText=o[0];
@@ -280,11 +160,12 @@ box.appendChild(btn);
 });
 }
 
-function select(opt){
-scores[opt[1]] += 1;
-intensity += opt[2];
+// 选择
+function select(o){
+scores[o[1]]++;
+intensity+=o[2];
 
-if(current < questions.length-1){
+if(current<questions.length-1){
 current++;
 render();
 }else{
@@ -292,27 +173,40 @@ showResult();
 }
 }
 
+// 结果
 function showResult(){
-document.getElementById('screen-quiz').classList.add('hidden');
-document.getElementById('screen-result').classList.remove('hidden');
+document.getElementById("quiz").classList.add("hidden");
+document.getElementById("result").classList.remove("hidden");
 
-let sorted = Object.entries(scores).sort((a,b)=>b[1]-a[1]);
-let main = sorted[0][0];
+let sorted=Object.entries(scores).sort((a,b)=>b[1]-a[1]);
 
-let base = results[main];
+let main=sorted[0][0];
+let shadow=sorted[1][0];
 
-let extra = "";
+// 标题
+document.getElementById("title").innerText=
+`主导：${main} ｜ 阴影：${shadow}`;
 
-if(intensity > 25){
-extra = "\n\n→ 你属于高强度版本：一旦进入关系，很少温和收场。";
-}else if(intensity > 18){
-extra = "\n\n→ 你属于中等强度：大多数时候可控，但会在特定点失衡。";
-}else{
-extra = "\n\n→ 你属于低强度：你有倾向，但通常被理性约束。";
-}
+// 描述
+let level=intensity>25?"高强度":intensity>18?"中等强度":"低强度";
 
-document.getElementById('result-title').innerText = base.title;
-document.getElementById('result-desc').innerText = base.desc + extra;
+document.getElementById("desc").innerText=
+descMap[main]+"\n\n强度："+level;
+
+// 阴影说明
+document.getElementById("shadow").innerText=
+`你在特定情况下会滑向 ${shadow}，这通常发生在你失去当前优势时。`;
+
+// 条形图
+let barsHTML="";
+["D","S","C","V"].forEach(k=>{
+let val=scores[k]*5;
+barsHTML+=`
+<div>${k}</div>
+<div class="bar"><div class="fill" style="width:${val}%"></div></div>
+`;
+});
+document.getElementById("bars").innerHTML=barsHTML;
 }
 
 </script>
